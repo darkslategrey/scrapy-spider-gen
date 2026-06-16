@@ -57,12 +57,10 @@ jobs:
     name: publish to npm
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
-      contents: write       # pour créer la release GitHub
-      id-token: write       # pour Trusted Publishing (OIDC)
-      packages: write       # garde-fou si GH Packages
+      contents: write   # pour la release GitHub
+      packages: write   # garde-fou si GH Packages
     steps:
       - uses: actions/checkout@v4
 
@@ -81,10 +79,10 @@ jobs:
       - name: Verify npm login
         run: npm whoami
 
-      - name: Publish (OIDC provenance)
+      - name: Publish
         run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ""   # force OIDC, pas de fallback token
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Verify on registry
         run: |
