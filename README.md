@@ -47,7 +47,10 @@ git clone <this-repo>
 cd pi-vapalape
 npm install
 pi install ./
+
 ```
+
+> **Looking for omp.sh (oh-my-pi) support?** See [`scrapy-spider-gen-omp`](./scrapy-spider-gen-omp/) — a sibling package that targets the `@oh-my-pi/pi-coding-agent` runtime.
 
 ## Usage
 
