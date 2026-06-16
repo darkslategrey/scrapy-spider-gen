@@ -24,7 +24,8 @@
 		"LICENSE"
 	],
 	"publishConfig": {
-		"access": "public"
+		"access": "public",
+		"provenance": true
 	},
 	"pi": {
 		"extensions": [
