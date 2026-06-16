@@ -50,7 +50,7 @@ export default function (pi: ExtensionAPI) {
 			prompt: Type.Optional(
 				Type.String({
 					description:
-						"Custom prompt for spider generation. Can be inline text or a path to a prompt file (resolved relative to Pi cwd).",
+						"Custom prompt for spider generation (replaces the default). Can be inline text or a path to a prompt file (resolved relative to Pi cwd).",
 				}),
 			),
 		}),
@@ -185,9 +185,7 @@ export default function (pi: ExtensionAPI) {
 				`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
 				`and include comments explaining each selector.`;
 
-			const prompt = promptText
-				? `${defaultPrompt}\n\nAdditional instructions:\n${promptText}`
-				: defaultPrompt;
+			const prompt = promptText ?? defaultPrompt;
 
 			pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 		},
