@@ -77,9 +77,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Debug secret
+        env:
+          NPM_TOKEN_DEBUG: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "Length: ${#NPM_TOKEN_DEBUG}"
+          curl -s -H "Authorization: Bearer $NPM_TOKEN_DEBUG" https://registry.npmjs.org/-/whoami
       - name: Verify npm login
-        run: npm whoami
-
       - name: Publish
         run: npm publish --provenance --access public
         env:
