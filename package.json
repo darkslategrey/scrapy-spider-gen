@@ -1,6 +1,6 @@
 {
 	"name": "scrapy-spider-gen",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"description": "Pi extension — génère des spiders Scrapy depuis des pages HTML",
 	"keywords": [
 		"pi-package",
