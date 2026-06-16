@@ -175,17 +175,12 @@ export default function (pi: ExtensionAPI) {
 				? await resolvePrompt(rawPrompt, ctx.cwd)
 				: null;
 
-			// Build the user message that triggers generation
-			const templateClause = template ? `, template="${template}"` : "";
-			const defaultPrompt =
-				`Use the spider_clean tool with source="${source}", level="${level}"${templateClause}. ` +
-				`Then generate a complete Python Scrapy spider that extracts all product fields ` +
-				`available on this page (name, price, description, images, SKU, availability, brand…). ` +
-				`Use robust CSS or XPath selectors based on the cleaned HTML. ` +
-				`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
-				`and include comments explaining each selector.`;
-
-			const prompt = promptText ?? defaultPrompt;
+			const prompt = buildSpiderPrompt(
+				source,
+				level,
+				template,
+				promptText ?? undefined,
+			);
 
 			pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 		},
@@ -193,6 +188,24 @@ export default function (pi: ExtensionAPI) {
 }
 
 // ── Utility ─────────────────────────────────────────────────────────────
+
+export function buildSpiderPrompt(
+	source: string,
+	level: string,
+	template?: string,
+	customPrompt?: string,
+): string {
+	const templateClause = template ? `, template="${template}"` : "";
+	const defaultPrompt =
+		`Use the spider_clean tool with source="${source}", level="${level}"${templateClause}. ` +
+		`Then generate a complete Python Scrapy spider that extracts all product fields ` +
+		`available on this page (name, price, description, images, SKU, availability, brand…). ` +
+		`Use robust CSS or XPath selectors based on the cleaned HTML. ` +
+		`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
+		`and include comments explaining each selector.`;
+
+	return customPrompt ?? defaultPrompt;
+}
 
 function fmt(bytes: number): string {
 	if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)}MB`;
