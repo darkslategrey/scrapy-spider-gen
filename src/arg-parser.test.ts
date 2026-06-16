@@ -190,4 +190,20 @@ describe("resolvePrompt", () => {
 		const result = await resolvePrompt("./prompts/custom.txt", tmpDir);
 		expect(result).toBe("./prompts/custom.txt");
 	});
+
+	it("preserves multi-line content from a prompt file", async () => {
+		const promptFile = join(tmpDir, "multiline.txt");
+		const content = [
+			"Extract only the product price.",
+			"Ignore all promotional banners.",
+			"Use XPath selectors.",
+		].join("\n");
+		await writeFile(promptFile, content, "utf8");
+
+		const result = await resolvePrompt("multiline.txt", tmpDir);
+		expect(result).toBe(content);
+		expect(result).toContain("Extract only the product price.");
+		expect(result).toContain("Ignore all promotional banners.");
+		expect(result).toContain("Use XPath selectors.");
+	});
 });
