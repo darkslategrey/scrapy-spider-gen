@@ -10,13 +10,23 @@
 		"html-cleaning"
 	],
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
 	"files": [
-		"src/**/*.ts",
-		"!src/**/*.test.ts",
+		"dist",
 		"README.md",
 		"LICENSE"
 	],
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
 	"pi": {
 		"extensions": [
 			"./src/index.ts"
@@ -29,7 +39,8 @@
 		"ci": "npm run check && npm run build && npm test",
 		"format": "biome format --write .",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"prepublishOnly": "npm run check && npm test && npm run build"
 	},
 	"peerDependencies": {
 		"@earendil-works/pi-coding-agent": "*",
