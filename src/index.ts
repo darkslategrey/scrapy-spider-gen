@@ -260,20 +260,29 @@ export function buildSpiderPrompt(
 	customPrompt?: string,
 ): string {
 	const templateClause = template ? `, template="${template}"` : "";
-	const defaultPrompt =
+	const cleanInstruction =
 		`Use the spider_clean tool with source="${source}", level="${level}"${templateClause}. ` +
-		`Then generate a complete Python Scrapy spider that extracts all product fields ` +
-		`available on this page (name, price, description, images, SKU, availability, brand…). ` +
-		`Use robust CSS or XPath selectors based on the cleaned HTML. ` +
-		`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
-		`and include comments explaining each selector.`;
+		`Then follow the instructions below to generate the spider.`;
 
-	if (!customPrompt) return defaultPrompt;
+	if (!customPrompt) {
+		return (
+			cleanInstruction +
+			` Generate a complete Python Scrapy spider that extracts all product fields ` +
+			`available on this page (name, price, description, images, SKU, availability, brand…). ` +
+			`Use robust CSS or XPath selectors based on the cleaned HTML. ` +
+			`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
+			`and include comments explaining each selector.`
+		);
+	}
 
-	return customPrompt
-		.replaceAll("{source}", source)
-		.replaceAll("{level}", level)
-		.replaceAll("{templateClause}", templateClause);
+	return (
+		cleanInstruction +
+		"\n\n" +
+		customPrompt
+			.replaceAll("{source}", source)
+			.replaceAll("{level}", level)
+			.replaceAll("{templateClause}", templateClause)
+	);
 }
 
 function fmt(bytes: number): string {
