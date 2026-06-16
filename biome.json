@@ -1,5 +1,6 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
+	"root": true,
 	"formatter": {
 		"enabled": true
 	},
@@ -15,7 +16,13 @@
 		}
 	},
 	"files": {
-		"includes": ["**", "!!**/.pi", "!!**/.claude", "!!tmp"],
+		"includes": [
+			"**",
+			"!!**/.pi",
+			"!!**/.claude",
+			"!!tmp",
+			"!!scrapy-spider-gen-omp"
+		],
 		"ignoreUnknown": false
 	},
 	"vcs": {

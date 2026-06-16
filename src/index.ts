@@ -3,9 +3,9 @@ import { resolve } from "node:path";
 import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { ArgParseError, parseSpiderArgs, resolvePrompt } from "./arg-parser.ts";
-import { FetchError, fetchHtml } from "./fetcher.ts";
-import { cleanHtml } from "./html-cleaner.ts";
+import { ArgParseError, parseSpiderArgs, resolvePrompt } from "./arg-parser.js";
+import { FetchError, fetchHtml } from "./fetcher.js";
+import { cleanHtml } from "./html-cleaner.js";
 
 // ── Safety limits ────────────────────────────────────────────────────────
 
@@ -59,6 +59,7 @@ export default function (pi: ExtensionAPI) {
 			// ── 1. Fetch HTML ──────────────────────────────────────────────
 			onUpdate?.({
 				content: [{ type: "text", text: `⏳ Fetching ${params.source}…` }],
+				details: {},
 			});
 
 			let raw: string;
@@ -77,6 +78,7 @@ export default function (pi: ExtensionAPI) {
 				content: [
 					{ type: "text", text: `🧹 Cleaning HTML (mode: ${params.level})…` },
 				],
+				details: {},
 			});
 
 			const result = cleanHtml(
