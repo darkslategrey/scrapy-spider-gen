@@ -14,7 +14,8 @@ Cargo.lock
 .env.*
 !.env.example
 
-test_token*.sh
+*.npmrc
+!.npmrc.example
 *-token*.sh
 *.env.local
 *.tmp
