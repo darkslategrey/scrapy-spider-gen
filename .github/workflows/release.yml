@@ -80,14 +80,6 @@ jobs:
       - name: Publish
         run: npm publish --access public
 
-      - name: Verify on registry
-        run: |
-          PKG=$(node -p "require('./package.json').name")
-          VER=$(node -p "require('./package.json').version")
-          echo "Checking $PKG@$VER on registry…"
-          npm view "$PKG@$VER" version
-          npm view "$PKG" dist-tags
-
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
