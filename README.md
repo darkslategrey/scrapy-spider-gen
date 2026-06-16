@@ -1,259 +1,114 @@
-# Claude Pi extension
-ref. https://claude.ai/chat/97516b73-3af6-4935-8824-c35f14649ba6
+# scrapy-spider-gen
 
-## Plan claude extension Pi coder
- 
- Oui, tout à fait d'accord, l'extension est le bon choix pour cette raison précise. Voici pourquoi :
+A [Pi](https://github.com/badlogic/pi-mono) extension that generates Scrapy spiders from web pages. Downloads HTML, strips the noise, and feeds the cleaned DOM to the LLM for automatic selector extraction and spider generation.
 
-## Le problème du volume HTML
+## The problem
 
-Une page e-commerce typique peut facilement peser **500Ko à 2Mo** de HTML brut, dont :
-- Les blocs `<style>` et `<link>` CSS inline
-- Les blocs `<script>` (souvent le plus gros morceau — analytics, tracking, hydration JS...)
-- Les attributs `data-*` en masse
-- Le SVG inline des icônes
-- Les commentaires HTML
+A typical e-commerce page weighs **500KB–2MB** of raw HTML. Most of it is noise for an LLM trying to identify CSS/XPath selectors on product content:
 
-Tout ça est du **bruit pur** pour un LLM qui cherche juste à identifier des sélecteurs CSS/XPath sur le contenu produit.
+- `<style>` / `<link>` blocks
+- `<script>` tags (analytics, tracking, hydration)
+- Dozens of `data-*` attributes
+- Inline SVG icons
+- HTML comments
 
-## Pourquoi l'extension est mieux qu'un skill ici
-
-Un skill ne fait qu'injecter des instructions dans le contexte — le nettoyage du HTML resterait à la charge du LLM, qui recevrait quand même le HTML brut.
-
-Une **extension TypeScript** peut au contraire faire le pré-traitement **avant** d'envoyer quoi que ce soit au LLM :
+## How it works
 
 ```
-HTML brut (2Mo)
+Raw HTML (2MB)
       │
       ▼
-[Extension Pi - nettoyage]
-  ├── Supprimer <script>, <style>, <svg>
-  ├── Supprimer les attributs inutiles (class de style, data-tracking...)
-  ├── Garder uniquement le DOM structurel
-  └── Optionnel : extraire uniquement la zone produit (main, article...)
+[scrapy-spider-gen extension]
+  ├── Strip <script>, <style>, <svg>, <noscript>, <iframe>, …
+  ├── Filter parasitic attributes (style, onclick, data-tracking…)
+  ├── Keep only structural DOM
+  └── Optionally extract product zone only (main, article…)
       │
       ▼
-HTML nettoyé (20-50Ko)
+Cleaned HTML (20–50KB)
       │
       ▼
-[LLM via Pi]  ←  template spider + items définis
+[LLM via Pi]  ←  spider template + item fields
       │
       ▼
-Spider complété
+Completed Scrapy spider
 ```
 
-## Ce que l'extension ferait concrètement
+## Install
 
-1. **Télécharger** la page (ou lire un fichier local)
-2. **Parser** le HTML avec une lib comme `node-html-parser` ou `cheerio`
-3. **Nettoyer** : supprimer scripts, styles, SVG inline, attributs parasites
-4. **Réduire** : optionnellement ne garder que le contenu principal (heuristique sur `<main>`, `<article>`, `[role=main]`...)
-5. **Injecter** dans le contexte Pi : HTML nettoyé + template spider
-6. **Déclencher** la génération automatiquement
-
-## Un bonus important
-
-L'extension peut aussi exposer un paramètre de **niveau de nettoyage** :
-- `--clean=light` → juste scripts/styles supprimés
-- `--clean=aggressive` → uniquement balises structurelles + texte
-- `--clean=smart` → extraction de la zone produit seulement
-
-Ce qui te donne de la flexibilité selon la complexité du site cible — utile pour Vapalape où tu vas scraper des dizaines de boutiques différentes.
-
----
-
-Tu veux qu'on attaque le code de l'extension ? On peut commencer par le module de nettoyage HTML qui est le cœur du dispositif.
-
-
-# Implementation
-
-Pas encore — je n'ai lu que la page d'accueil. Laisse-moi lire la doc complète avant d'écrire une seule ligne.Bien. J'ai maintenant une lecture complète de la doc extensions et packages de Pi. Je suis prêt.
-
-Voici ce que je propose de construire, en respectant scrupuleusement l'API Pi :
-
-## Structure de l'extension
-
-```
-~/.pi/agent/extensions/
-└── scrapy-spider-gen/
-    ├── package.json          ← dépendances (node-html-parser, etc.)
-    ├── node_modules/
-    └── src/
-        ├── index.ts          ← entry point, enregistre commande + outil
-        ├── html-cleaner.ts   ← nettoyage HTML (le cœur)
-        └── fetcher.ts        ← téléchargement URL ou lecture fichier local
+```bash
+pi install npm:scrapy-spider-gen
 ```
 
-## Ce que ça fait concrètement
+Or from source:
 
-- Une **commande** `/spider` utilisable depuis Pi : `/spider url=https://... template=./spider.py`
-- Un **outil LLM** `clean_html` que Pi peut appeler lui-même pour nettoyer une page avant de générer
-- Le nettoyeur retire scripts, styles, SVG, attributs parasites, puis injecte dans le contexte Pi via `before_agent_start`
-
-## Les fichiers
-
-### `package.json`
-```json
-{
-  "name": "scrapy-spider-gen",
-  "dependencies": {
-    "node-html-parser": "^6.1.0"
-  },
-  "pi": {
-    "extensions": ["./src/index.ts"]
-  }
-}
+```bash
+git clone <this-repo>
+cd pi-vapalape
+npm install
+pi install ./
 ```
 
-### `src/fetcher.ts`
-```typescript
-import { readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+## Usage
 
-export async function fetchHtml(source: string): Promise<string> {
-  // Fichier local
-  if (existsSync(source)) {
-    return readFile(source, "utf8");
-  }
-  // URL
-  const res = await fetch(source, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; scrapy-spider-gen/1.0)" },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} pour ${source}`);
-  return res.text();
-}
+### Command: `/spider-create`
+
+```
+/spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive]
 ```
 
-### `src/html-cleaner.ts`
-```typescript
-import { parse } from "node-html-parser";
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `url` | HTTPS URL or local file path to the HTML page | *required* |
+| `template` | Path to a Scrapy spider template file | — |
+| `level` | Cleaning intensity | `normal` |
 
-export type CleanLevel = "light" | "normal" | "aggressive";
+**Examples:**
 
-export function cleanHtml(raw: string, level: CleanLevel = "normal"): string {
-  const root = parse(raw);
-
-  // Toujours supprimer
-  for (const tag of ["script", "style", "noscript", "svg", "iframe", "canvas"]) {
-    root.querySelectorAll(tag).forEach(el => el.remove());
-  }
-
-  if (level === "normal" || level === "aggressive") {
-    // Supprimer attributs parasites
-    const KEEP_ATTRS = new Set(["id", "class", "href", "src", "alt", "type", "name", "value", "data-product-id"]);
-    root.querySelectorAll("*").forEach(el => {
-      for (const attr of Object.keys(el.attributes)) {
-        if (!KEEP_ATTRS.has(attr) && !attr.startsWith("data-product")) {
-          el.removeAttribute(attr);
-        }
-      }
-    });
-  }
-
-  if (level === "aggressive") {
-    // Garder uniquement main/article ou body
-    const main = root.querySelector("main, article, [role='main'], #content, .product");
-    return main ? main.outerHTML : root.querySelector("body")?.innerHTML ?? root.innerHTML;
-  }
-
-  return root.innerHTML;
-}
+```
+/spider-create url=https://shop.example.com/product/42
+/spider-create url=https://shop.example.com/product/42 template=./spider.py level=aggressive
+/spider-create url=./pages/product.html level=light
 ```
 
-### `src/index.ts`
-```typescript
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { StringEnum } from "@earendil-works/pi-ai";
-import { fetchHtml } from "./fetcher.js";
-import { cleanHtml, type CleanLevel } from "./html-cleaner.js";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+### Tool: `spider_clean`
 
-export default function (pi: ExtensionAPI) {
+LLM-callable tool that fetches, cleans, and returns structural HTML for Scrapy selector analysis. The LLM can also call it directly when generating or completing a spider.
 
-  // ── Outil LLM : clean_html ─────────────────────────────────────────────
-  pi.registerTool({
-    name: "clean_html",
-    label: "Clean HTML",
-    description: "Télécharge une page HTML depuis une URL ou un fichier local, la nettoie (supprime scripts/styles/SVG/attributs parasites) et retourne le HTML structurel pour analyse de sélecteurs Scrapy.",
-    promptSnippet: "Nettoie une page HTML pour extraction de sélecteurs Scrapy",
-    promptGuidelines: [
-      "Use clean_html when asked to generate or complete a Scrapy spider from a web page.",
-    ],
-    parameters: Type.Object({
-      source:  Type.String({ description: "URL https:// ou chemin fichier local vers la page HTML" }),
-      level:   StringEnum(["light", "normal", "aggressive"] as const, { description: "Niveau de nettoyage : light, normal (défaut), aggressive" }),
-      template: Type.Optional(Type.String({ description: "Chemin vers le fichier template du spider Scrapy" })),
-    }),
-    async execute(toolCallId, params, signal, onUpdate, ctx) {
-      onUpdate?.({ content: [{ type: "text", text: `⏳ Récupération de ${params.source}…` }] });
-      const raw = await fetchHtml(params.source);
-      const sizeBefore = Buffer.byteLength(raw, "utf8");
+## Clean levels
 
-      onUpdate?.({ content: [{ type: "text", text: `🧹 Nettoyage HTML (mode: ${params.level})…` }] });
-      const cleaned = cleanHtml(raw, params.level as CleanLevel);
-      const sizeAfter = Buffer.byteLength(cleaned, "utf8");
+| Level | What it does |
+|-------|-------------|
+| **light** | Removes `<script>`, `<style>`, `<svg>`, `<noscript>`, `<iframe>`, `<canvas>`, `<video>`, `<audio>`, `<link>`, `<meta>`, `<template>` |
+| **normal** | *light* + filters parasitic attributes (`style`, `onclick`, `data-tracking`…), keeps only structural attributes (`id`, `class`, `href`, `src`, `alt`, `data-product-*`, Schema.org…) |
+| **aggressive** | *normal* + extracts only the product zone using heuristics (Schema.org markers, `.product-detail`, `main`, `article`, `[role='main']`…) |
 
-      let templateContent = "";
-      if (params.template) {
-        const absPath = resolve(ctx.cwd, params.template);
-        templateContent = await readFile(absPath, "utf8");
-      }
+## Safety
 
-      const reduction = Math.round((1 - sizeAfter / sizeBefore) * 100);
-      const summary = `HTML nettoyé : ${(sizeBefore/1024).toFixed(0)}Ko → ${(sizeAfter/1024).toFixed(0)}Ko (−${reduction}%)\n\n`;
+Cleaned HTML is capped at **400KB** to stay within LLM context limits. If the output exceeds this threshold, it is truncated with a warning.
 
-      const output = templateContent
-        ? `${summary}## Template spider :\n\`\`\`python\n${templateContent}\n\`\`\`\n\n## HTML nettoyé :\n\`\`\`html\n${cleaned}\n\`\`\``
-        : `${summary}## HTML nettoyé :\n\`\`\`html\n${cleaned}\n\`\`\``;
+## Architecture
 
-      return {
-        content: [{ type: "text", text: output }],
-        details: { sizeBefore, sizeAfter, reduction, source: params.source },
-      };
-    },
-  });
-
-  // ── Commande /spider ────────────────────────────────────────────────────
-  pi.registerCommand("spider", {
-    description: "Génère un spider Scrapy depuis une URL ou page HTML. Usage: /spider url=<url> [template=<path>] [level=light|normal|aggressive]",
-    handler: async (args, ctx) => {
-      // Parser les args "clé=valeur"
-      const params = Object.fromEntries(
-        (args ?? "").split(/\s+/)
-          .filter(a => a.includes("="))
-          .map(a => a.split("=") as [string, string])
-      );
-
-      const source = params.url ?? params.source;
-      if (!source) {
-        ctx.ui.notify("Usage : /spider url=https://... [template=./spider.py] [level=light|normal|aggressive]", "error");
-        return;
-      }
-
-      const level = (params.level ?? "normal") as CleanLevel;
-      const template = params.template;
-
-      ctx.ui.notify(`🕷️  Génération spider depuis ${source}…`, "info");
-
-      await ctx.waitForIdle();
-
-      // Déclencher le LLM avec le contexte préparé
-      pi.sendUserMessage(
-        `Utilise l'outil clean_html avec source="${source}", level="${level}"${template ? `, template="${template}"` : ""}, puis génère un spider Scrapy complet qui extrait tous les champs produit disponibles (nom, prix, description, images, SKU, disponibilité…) en utilisant des sélecteurs CSS ou XPath robustes.`,
-        { deliverAs: "followUp" }
-      );
-    },
-  });
-}
+```
+src/
+├── index.ts          — Entry point: /spider-create command + spider_clean tool
+├── arg-parser.ts     — Parses /spider-create command arguments
+├── fetcher.ts        — Downloads HTML from URL or reads local file
+├── html-cleaner.ts   — Cleans HTML: removes noise, filters attributes, extracts product zone
+└── *.test.ts         — Co-located tests (vitest)
 ```
 
----
+## Development
 
-Tu veux qu'on affine quelque chose avant que je génère les fichiers finaux ? Notamment :
+```bash
+npm install
+npm test            # vitest run
+npm run check       # biome lint + format
+npm run format      # auto-fix formatting
+npm run build       # tsc
+npm run ci          # check + build + test
+```
 
-- La liste des attributs HTML à conserver dans le mode `normal`
-- La stratégie d'extraction de la zone produit en mode `aggressive` (les sélecteurs heuristiques)
-- Ou est-ce qu'on part direct sur les fichiers et on itère ensuite ?
+## License
 
+MIT

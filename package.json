@@ -1,0 +1,51 @@
+{
+	"name": "scrapy-spider-gen",
+	"version": "0.1.0",
+	"description": "Pi extension — génère des spiders Scrapy depuis des pages HTML",
+	"keywords": [
+		"pi-package",
+		"pi-extension",
+		"scrapy",
+		"spider",
+		"html-cleaning"
+	],
+	"type": "module",
+	"main": "src/index.ts",
+	"files": [
+		"src/**/*.ts",
+		"!src/**/*.test.ts",
+		"README.md",
+		"LICENSE"
+	],
+	"pi": {
+		"extensions": [
+			"./src/index.ts"
+		]
+	},
+	"license": "MIT",
+	"scripts": {
+		"build": "tsc",
+		"check": "biome check .",
+		"ci": "npm run check && npm run build && npm test",
+		"format": "biome format --write .",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"@earendil-works/pi-ai": "*",
+		"typebox": "*"
+	},
+	"dependencies": {
+		"node-html-parser": "^6.1.0"
+	},
+	"devDependencies": {
+		"@earendil-works/pi-coding-agent": "0.75.4",
+		"@earendil-works/pi-ai": "0.75.4",
+		"@biomejs/biome": "^2.4.15",
+		"@types/node": "^24.0.0",
+		"typebox": "*",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.6"
+	}
+}
