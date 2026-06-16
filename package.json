@@ -34,7 +34,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/darkslategrey/scrapy-spider-gen.git"
+		"url": "https://github.com/darkslategrey/scrapy-spider-gen"
 	},
 	"homepage": "https://github.com/darkslategrey/scrapy-spider-gen#readme",
 	"bugs": {
