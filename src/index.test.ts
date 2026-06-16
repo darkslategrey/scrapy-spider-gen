@@ -63,4 +63,58 @@ describe("buildSpiderPrompt", () => {
 		expect(prompt).toContain("Extract only the product price.");
 		expect(prompt).toContain("Ignore all promotional banners.");
 	});
+
+	it("replaces {source} variable in custom prompt", () => {
+		const prompt = buildSpiderPrompt(
+			"https://shop.example.com/product/42",
+			"normal",
+			undefined,
+			"Analyze {source}",
+		);
+		expect(prompt).toBe("Analyze https://shop.example.com/product/42");
+	});
+
+	it("replaces {level} variable in custom prompt", () => {
+		const prompt = buildSpiderPrompt(
+			"https://shop.example.com/product/42",
+			"aggressive",
+			undefined,
+			"Use level {level}",
+		);
+		expect(prompt).toBe("Use level aggressive");
+	});
+
+	it("replaces {templateClause} variable in custom prompt", () => {
+		const prompt = buildSpiderPrompt(
+			"https://shop.example.com/product/42",
+			"normal",
+			"./spider.py",
+			"Use spider_clean with{templateClause} source={source}",
+		);
+		expect(prompt).toBe(
+			'Use spider_clean with, template="./spider.py" source=https://shop.example.com/product/42',
+		);
+	});
+
+	it("replaces {templateClause} with empty string when no template", () => {
+		const prompt = buildSpiderPrompt(
+			"https://shop.example.com/product/42",
+			"normal",
+			undefined,
+			"Params:{templateClause}",
+		);
+		expect(prompt).toBe("Params:");
+	});
+
+	it("replaces multiple variables in custom prompt", () => {
+		const prompt = buildSpiderPrompt(
+			"https://shop.example.com/product/42",
+			"light",
+			"./spider.py",
+			"Source: {source}, Level: {level}{templateClause}",
+		);
+		expect(prompt).toBe(
+			'Source: https://shop.example.com/product/42, Level: light, template="./spider.py"',
+		);
+	});
 });

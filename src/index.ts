@@ -204,7 +204,12 @@ export function buildSpiderPrompt(
 		`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
 		`and include comments explaining each selector.`;
 
-	return customPrompt ?? defaultPrompt;
+	if (!customPrompt) return defaultPrompt;
+
+	return customPrompt
+		.replaceAll("{source}", source)
+		.replaceAll("{level}", level)
+		.replaceAll("{templateClause}", templateClause);
 }
 
 function fmt(bytes: number): string {
