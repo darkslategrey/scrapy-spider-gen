@@ -77,18 +77,19 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Debug secret
-        env:
-          NPM_TOKEN_DEBUG: ${{ secrets.NPM_TOKEN }}
+      - name: Setup npm auth
         run: |
-          echo "Length: ${#NPM_TOKEN_DEBUG}"
-          curl -s -H "Authorization: Bearer $NPM_TOKEN_DEBUG" https://registry.npmjs.org/-/whoami
+          cat > ~/.npmrc <<EOF
+          registry=https://registry.npmjs.org/
+          //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+          EOF
+          echo "npmrc written, length: $(wc -c < ~/.npmrc)"
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify npm login
         run: npm whoami
       - name: Publish
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
       - name: Verify on registry
         run: |
           PKG=$(node -p "require('./package.json').name")

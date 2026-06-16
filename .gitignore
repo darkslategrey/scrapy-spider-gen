@@ -14,7 +14,9 @@ Cargo.lock
 .env.*
 !.env.example
 
-*.log
+test_token*.sh
+*-token*.sh
+*.env.local
 *.tmp
 *.temp
 *.tar
