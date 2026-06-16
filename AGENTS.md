@@ -25,7 +25,7 @@ src/
 
 | Command | Usage |
 |---------|-------|
-| `/spider-create` | `/spider-create url=<url> [template=<path>] [level=light\|normal\|aggressive]` |
+| `/spider-create` | `/spider-create url=<url> [template=<path>] [level=light\|normal\|aggressive] [prompt=<text_or_path>]` |
 
 ## Tools (LLM-callable)
 

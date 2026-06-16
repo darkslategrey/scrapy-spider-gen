@@ -54,7 +54,7 @@ pi install ./
 ### Command: `/spider-create`
 
 ```
-/spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive]
+/spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive] [prompt=<text_or_path>]
 ```
 
 | Parameter | Description | Default |
@@ -62,6 +62,7 @@ pi install ./
 | `url` | HTTPS URL or local file path to the HTML page | *required* |
 | `template` | Path to a Scrapy spider template file | — |
 | `level` | Cleaning intensity | `normal` |
+| `prompt` | Custom prompt: inline text (single word) or path to a prompt file | — |
 
 **Examples:**
 
@@ -69,6 +70,7 @@ pi install ./
 /spider-create url=https://shop.example.com/product/42
 /spider-create url=https://shop.example.com/product/42 template=./spider.py level=aggressive
 /spider-create url=./pages/product.html level=light
+/spider-create url=https://shop.example.com/product/42 prompt=./my_instructions.txt
 ```
 
 ### Tool: `spider_clean`

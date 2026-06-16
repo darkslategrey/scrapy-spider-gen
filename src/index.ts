@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { ArgParseError, parseSpiderArgs } from "./arg-parser.ts";
+import { ArgParseError, parseSpiderArgs, resolvePrompt } from "./arg-parser.ts";
 import { FetchError, fetchHtml } from "./fetcher.ts";
 import { cleanHtml } from "./html-cleaner.ts";
 
@@ -45,6 +45,12 @@ export default function (pi: ExtensionAPI) {
 				Type.String({
 					description:
 						"Path to the Scrapy spider template file (relative to Pi cwd)",
+				}),
+			),
+			prompt: Type.Optional(
+				Type.String({
+					description:
+						"Custom prompt for spider generation. Can be inline text or a path to a prompt file (resolved relative to Pi cwd).",
 				}),
 			),
 		}),
@@ -139,10 +145,15 @@ export default function (pi: ExtensionAPI) {
 	pi.registerCommand("spider-create", {
 		description:
 			"Generate a Scrapy spider from a URL or local HTML page.\n" +
-			"Usage: /spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive]",
+			"Usage: /spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive] [prompt=<text_or_path>]",
 
 		handler: async (args, ctx) => {
-			let parsed: { source: string; level: string; template?: string };
+			let parsed: {
+				source: string;
+				level: string;
+				template?: string;
+				prompt?: string;
+			};
 			try {
 				parsed = parseSpiderArgs(args ?? "");
 			} catch (err) {
@@ -153,21 +164,30 @@ export default function (pi: ExtensionAPI) {
 				throw err;
 			}
 
-			const { source, level, template } = parsed;
+			const { source, level, template, prompt: rawPrompt } = parsed;
 			ctx.ui.notify(`🕷️  Generating spider from ${source}…`, "info");
 
 			// Wait for Pi to be idle before triggering the LLM
 			await ctx.waitForIdle();
 
+			// Resolve prompt: file path → read content, otherwise use as-is
+			const promptText = rawPrompt
+				? await resolvePrompt(rawPrompt, ctx.cwd)
+				: null;
+
 			// Build the user message that triggers generation
 			const templateClause = template ? `, template="${template}"` : "";
-			const prompt =
+			const defaultPrompt =
 				`Use the spider_clean tool with source="${source}", level="${level}"${templateClause}. ` +
 				`Then generate a complete Python Scrapy spider that extracts all product fields ` +
 				`available on this page (name, price, description, images, SKU, availability, brand…). ` +
 				`Use robust CSS or XPath selectors based on the cleaned HTML. ` +
 				`The spider must inherit from scrapy.Spider, define a Scrapy Item with all found fields, ` +
 				`and include comments explaining each selector.`;
+
+			const prompt = promptText
+				? `${defaultPrompt}\n\nAdditional instructions:\n${promptText}`
+				: defaultPrompt;
 
 			pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 		},
