@@ -77,14 +77,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Debug secret
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo "Token length: ${#NODE_AUTH_TOKEN}"
-          echo "Token sha256: $(printf '%s' "$NODE_AUTH_TOKEN" | sha256sum | cut -d' ' -f1)"
-          echo "Token whoami: $(curl -s -H "Authorization: Bearer $NODE_AUTH_TOKEN" https://registry.npmjs.org/-/whoami || echo 'curl-failed')"
       - name: Verify npm login
+        run: npm whoami
+
       - name: Publish
         run: npm publish --provenance --access public
         env:
