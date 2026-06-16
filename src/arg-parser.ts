@@ -37,7 +37,7 @@ export function parseSpiderArgs(raw: string): SpiderArgs {
 	if (!source) {
 		throw new ArgParseError(
 			"Missing argument: url=<url_or_path>\n" +
-				"Example: /spider-create url=https://shop.example.com/product/42 template=./spider.py",
+				"Example: /spider-create url=https://shop.example.com/product/42 template=./spider.py level=normal",
 		);
 	}
 
