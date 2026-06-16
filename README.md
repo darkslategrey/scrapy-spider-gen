@@ -62,7 +62,7 @@ pi install ./
 | `url` | HTTPS URL or local file path to the HTML page | *required* |
 | `template` | Path to a Scrapy spider template file | — |
 | `level` | Cleaning intensity | `normal` |
-| `prompt` | Custom prompt: inline text (single word) or path to a prompt file | — |
+| `prompt` | Custom prompt (replaces the default). Inline text or path to a prompt file | — |
 
 **Examples:**
 
@@ -72,6 +72,20 @@ pi install ./
 /spider-create url=./pages/product.html level=light
 /spider-create url=https://shop.example.com/product/42 prompt=./my_instructions.txt
 ```
+
+### Command: `/spider-help`
+
+Shows extension usage, available commands, clean levels, and custom prompt variables.
+
+### Custom prompt variables
+
+When using `prompt=<file>`, the following variables are resolved in the prompt content:
+
+| Variable | Value |
+|----------|-------|
+| `{source}` | URL or file path of the HTML page |
+| `{level}` | Cleaning level |
+| `{templateClause}` | `, template="<path>"` or empty string |
 
 ### Tool: `spider_clean`
 

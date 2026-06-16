@@ -185,6 +185,70 @@ export default function (pi: ExtensionAPI) {
 			pi.sendUserMessage(prompt, { deliverAs: "followUp" });
 		},
 	});
+
+	// ══════════════════════════════════════════════════════════════════════════
+	// Command /spider-help
+	// Shows extension usage and available options
+	// ══════════════════════════════════════════════════════════════════════════
+	pi.registerCommand("spider-help", {
+		description: "Show scrapy-spider-gen usage and available options.",
+
+		handler: async (_args, ctx) => {
+			const help = [
+				"## scrapy-spider-gen",
+				"",
+				"Generates Scrapy spiders from web pages by cleaning HTML and feeding it to the LLM.",
+				"",
+				"### Commands",
+				"",
+				"| Command | Description |",
+				"|---------|-------------|",
+				"| `/spider-create` | Generate a Scrapy spider from a URL or local HTML page |",
+				"| `/spider-help` | Show this help message |",
+				"",
+				"### /spider-create usage",
+				"",
+				"```",
+				"/spider-create url=<url_or_path> [template=<path>] [level=light|normal|aggressive] [prompt=<text_or_path>]",
+				"```",
+				"",
+				"| Parameter | Description | Default |",
+				"|-----------|-------------|---------|",
+				"| `url` | HTTPS URL or local file path to the HTML page | *required* |",
+				"| `template` | Path to a Scrapy spider template file | — |",
+				"| `level` | Cleaning intensity | `normal` |",
+				"| `prompt` | Custom prompt (replaces the default). Inline text or path to a prompt file | — |",
+				"",
+				"### Clean levels",
+				"",
+				"| Level | Behavior |",
+				"|-------|----------|",
+				"| `light` | Removes scripts, styles, SVG, noscript, iframe, canvas, video, audio, link, meta, template |",
+				"| `normal` | + filters parasitic attributes (style, onclick, data-tracking…), keeps structural attributes |",
+				"| `aggressive` | + extracts only the product zone (Schema.org, .product-detail, main, article…) |",
+				"",
+				"### Custom prompt variables",
+				"",
+				"When using `prompt=<file>`, the following variables are resolved:",
+				"",
+				"| Variable | Value |",
+				"|----------|-------|",
+				"| `{source}` | URL or file path of the HTML page |",
+				"| `{level}` | Cleaning level |",
+				'| `{templateClause}` | `, template="<path>"` or empty string |',
+				"",
+				"### Examples",
+				"",
+				"```",
+				"/spider-create url=https://shop.example.com/product/42",
+				"/spider-create url=https://shop.example.com/product/42 template=./spider.py level=aggressive",
+				"/spider-create url=./pages/product.html level=light prompt=./my_instructions.txt",
+				"```",
+			].join("\n");
+
+			ctx.ui.notify(help, "info");
+		},
+	});
 }
 
 // ── Utility ─────────────────────────────────────────────────────────────

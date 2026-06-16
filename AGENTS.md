@@ -8,7 +8,7 @@ Pi extension that generates Scrapy spiders from web pages. Downloads HTML, clean
 
 ```
 src/
-├── index.ts          — Extension entry point: registers `/spider-create` command + `spider_clean` tool
+├── index.ts          — Extension entry point: registers `/spider-create`, `/spider-help` commands + `spider_clean` tool
 ├── arg-parser.ts     — Parses /spider-create command arguments (url, level, template)
 ├── fetcher.ts        — Downloads HTML from URL or reads local file
 ├── html-cleaner.ts   — Cleans HTML: removes noise, filters attributes, extracts product zone
@@ -26,6 +26,7 @@ src/
 | Command | Usage |
 |---------|-------|
 | `/spider-create` | `/spider-create url=<url> [template=<path>] [level=light\|normal\|aggressive] [prompt=<text_or_path>]` |
+| `/spider-help` | Show extension usage, clean levels, and custom prompt variables |
 
 ## Tools (LLM-callable)
 
