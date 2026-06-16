@@ -32,6 +32,14 @@
 			"./src/index.ts"
 		]
 	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/darkslategrey/scrapy-spider-gen.git"
+	},
+	"homepage": "https://github.com/darkslategrey/scrapy-spider-gen#readme",
+	"bugs": {
+		"url": "https://github.com/darkslategrey/scrapy-spider-gen/issues"
+	},
 	"license": "MIT",
 	"scripts": {
 		"build": "tsc",
