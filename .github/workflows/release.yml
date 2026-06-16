@@ -77,15 +77,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Setup npm auth
-        run: |
-          cat > ~/.npmrc <<EOF
-          registry=https://registry.npmjs.org/
-          //registry.npmjs.org/:_authToken=${NPM_TOKEN}
-          EOF
-          echo "npmrc written, length: $(wc -c < ~/.npmrc)"
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify npm login
         run: npm whoami
       - name: Publish
